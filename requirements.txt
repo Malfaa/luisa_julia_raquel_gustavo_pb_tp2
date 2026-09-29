@@ -6,6 +6,10 @@ seaborn
 scipy
 jupyter
 
-# API
+# API e Persistência
 fastapi[standard]
+python-multipart
 pyjwt
+sqlmodel
+passlib[bcrypt]
+bcrypt
