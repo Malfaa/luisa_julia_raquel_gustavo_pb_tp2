@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from security.jwt import USUARIO_ADMIN, gerar_token
 
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
 @router.post("/token")

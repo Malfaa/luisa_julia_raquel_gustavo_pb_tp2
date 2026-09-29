@@ -4,12 +4,15 @@ import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
+import os
 
-
-SECRET_KEY = "CHAVE_SECRETA"
+SECRET_KEY = os.getenv(
+    "CHAVE_SECRETA",
+    "chave_secreta_super_segura",
+)
 ALGORITHM = "HS256"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 USUARIO_ADMIN = {
     "username": "admin",
