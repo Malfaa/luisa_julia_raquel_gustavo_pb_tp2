@@ -88,6 +88,32 @@ Recursos e controles implementados na API:
 
 - Middlewares globais injetando headers de segurança (HSTS, CSP, X-Frame-Options, X-Content-Type-Options) e CORS com allowlist explícita.
 
+#### Headers de segurança HTTP
+
+Implementados em `fastapi/security/headers.py` por meio de middleware FastAPI, presentes em todas as respostas (inclusive nas de erro 401 e 429):
+
+| Header | Valor | Objetivo |
+|---|---|---|
+| `Strict-Transport-Security` | `max-age=31536000; includeSubDomains` | Força HTTPS em acessos seguintes |
+| `X-Frame-Options` | `DENY` | Bloqueia uso da API em iframe (clickjacking) |
+| `X-Content-Type-Options` | `nosniff` | Impede MIME sniffing |
+| `Content-Security-Policy` | `default-src 'none'; frame-ancestors 'none'` | Respostas da API não carregam nem embutem nenhum recurso |
+
+As rotas `/docs` e `/redoc` usam uma CSP menos restritiva, que libera apenas o CDN `cdn.jsdelivr.net`, necessário para o Swagger funcionar.
+
+#### CORS
+
+Configurado em `fastapi/security/cors.py` com `CORSMiddleware` e allowlist explícita de origens (`http://localhost:3000` e `http://localhost:8501`, também em `127.0.0.1`). Não é usado `"*"`. Métodos permitidos: `GET`, `POST`, `OPTIONS`. Headers permitidos: `Authorization` e `Content-Type`. Origens adicionais podem ser informadas na variável de ambiente `CORS_ORIGENS_EXTRAS`, separadas por vírgula.
+
+#### Rate limiting
+
+Implementado com SlowAPI em `fastapi/security/rate_limit.py` e aplicado ao endpoint `POST /auth/token`.
+
+- **Limite:** 10 requisições por minuto por cliente (identificado pelo IP).
+- **Resposta ao exceder:** HTTP `429`.
+- **Justificativa:** 10 tentativas por minuto atendem um usuário legítimo que erra a senha algumas vezes, mas limitam um ataque de força bruta a no máximo 600 tentativas por hora por IP.
+- **Observação:** o contador fica em memória, então reinicia quando a API reinicia. Nos testes automatizados, é preciso chamar `limiter.reset()` entre os testes que usam `/auth/token`.
+
 ### Como executar os testes automatizados
 
 Os testes cobrem os cenários de segurança exigidos (acesso sem token, violação de

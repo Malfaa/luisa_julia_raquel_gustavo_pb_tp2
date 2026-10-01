@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from security.jwt import USUARIO_ADMIN, gerar_token
+from security.rate_limit import LIMITE_AUTENTICACAO, limiter
 
 
 router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
 @router.post("/token")
+@limiter.limit(LIMITE_AUTENTICACAO)
 def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends()
 ):
 
