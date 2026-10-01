@@ -4,16 +4,17 @@ from sqlmodel import Session, select
 from models.schemas import PredictRequest, PredictResponse
 from models.database_models import User, Prediction
 from database import get_session
-from security.jwt import validar_token_jwt
+from security.dependencies import get_current_user
 
 
 predict_router = APIRouter()
 
 
 @predict_router.post("/predict", response_model=PredictResponse)
-async def predict(
+def predict(
     data: PredictRequest,
-    username: str = Depends(validar_token_jwt)
+    usuario: User = Depends(get_current_user),
+    session: Session = Depends(get_session)
 ):
     texto = data.message.lower()
 
@@ -22,25 +23,32 @@ async def predict(
     else:
         intent = "general_support"
 
-    return {"intent": intent}
+    # A predição é salva com o owner_id do usuário autenticado
+    prediction = Prediction(
+        text=data.message,
+        intent=intent,
+        owner_id=usuario.id
+    )
+    session.add(prediction)
+    session.commit()
+    session.refresh(prediction)
+
+    return {
+        "id": prediction.id,
+        "message": prediction.text,
+        "intent": prediction.intent
+    }
 
 
 @predict_router.get("/predict/{prediction_id}")
-async def get_prediction(
+def get_prediction(
     prediction_id: int,
-    username: str = Depends(validar_token_jwt),
+    usuario: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    usuario = session.exec(
-        select(User).where(User.username == username)
-    ).first()
-
-    if not usuario:
-        raise HTTPException(
-            status_code=401,
-            detail="Usuário não encontrado"
-        )
-
+    # Controle de acesso por ownership (BOLA): filtra pelo id E pelo dono.
+    # Se a predição existe mas é de outro usuário, a resposta é a mesma de
+    # "não existe" (404), sem revelar a existência do recurso.
     prediction = session.exec(
         select(Prediction).where(
             Prediction.id == prediction_id,
@@ -55,4 +63,3 @@ async def get_prediction(
         )
 
     return prediction
-

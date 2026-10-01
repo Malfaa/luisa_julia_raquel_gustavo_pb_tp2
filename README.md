@@ -55,6 +55,16 @@ python fastapi/sqlite_database.py
 
 O banco `database.db` será gerado automaticamente dentro do diretório `fastapi/`.
 
+O banco já vem populado com 3 usuários de demonstração (senhas armazenadas como hash bcrypt) e 4 predições de donos diferentes:
+
+| Usuário | Senha | Predições (id) |
+|---|---|---|
+| `admin` | `admin` | 1, 2 |
+| `jose` | `1234` | 3 |
+| `maria` | `senha123` | 4 |
+
+Exemplo de login: `POST /auth/token` com `username` e `password` em formulário (`application/x-www-form-urlencoded`). Use o `access_token` retornado no header `Authorization: Bearer <token>`.
+
 ### Como executar o EDA
 
 O notebook está em `eda/`. Dá pra abrir no Jupyter ou no Google Colab. Se rodar local:
@@ -80,11 +90,11 @@ Recursos e controles implementados na API:
 
 - `GET /health` — verifica a integridade e status da API.
 
-- `POST /auth/token` — autentica usuários e emite token JWT.
+- `POST /auth/token` — autentica usuários cadastrados no banco (senhas armazenadas com hash bcrypt) e emite token JWT. Limitado a 10 requisições por minuto por cliente.
 
-- `POST /predictions` — endpoint protegido por JWT para submissão de predição com modelo validado (extra='forbid').
+- `POST /predict` — endpoint protegido por JWT que classifica a mensagem e salva a predição com o `owner_id` do usuário autenticado. O body é validado com `extra='forbid'`: campos extras retornam 422.
 
-- `GET /predictions/{id}` — consulta de recurso por ID com validação de ownership (prevenção contra BOLA).
+- `GET /predict/{id}` — consulta de predição por ID com validação de ownership (prevenção contra BOLA): se a predição pertence a outro usuário, a API responde 404, igual a uma predição inexistente.
 
 - Middlewares globais injetando headers de segurança (HSTS, CSP, X-Frame-Options, X-Content-Type-Options) e CORS com allowlist explícita.
 

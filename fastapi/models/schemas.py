@@ -8,6 +8,7 @@ class PredictRequest(BaseModel):
 
 
 class PredictResponse(BaseModel):
+    id: int
     message: str
     intent: str
 

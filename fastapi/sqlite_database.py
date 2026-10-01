@@ -1,6 +1,8 @@
 import os
 import sqlite3
 
+from security.passwords import gerar_hash
+
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 
 
@@ -31,7 +33,12 @@ def init_db():
     );
     """)
 
-  usuarios = [("admin", "admin"), ("jose", "1234"), ("maria", "senha123")]
+  # Senhas de demonstração, armazenadas apenas como hash bcrypt
+  usuarios = [
+      ("admin", gerar_hash("admin")),
+      ("jose", gerar_hash("1234")),
+      ("maria", gerar_hash("senha123")),
+  ]
   cursor.executemany(
       "INSERT INTO user (username, password) VALUES (?, ?);", usuarios
   )
