@@ -1,9 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class PredictRequest(BaseModel):
-    text: str
+    model_config = ConfigDict(extra="forbid")
+
+    message: str
 
 
 class PredictResponse(BaseModel):
+    message: str
     intent: str
+
