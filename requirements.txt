@@ -13,3 +13,4 @@ pyjwt
 sqlmodel
 passlib[bcrypt]
 bcrypt
+slowapi
