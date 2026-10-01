@@ -14,11 +14,6 @@ ALGORITHM = "HS256"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
-USUARIO_ADMIN = {
-    "username": "admin",
-    "password": "admin"
-}
-
 
 def gerar_token(username: str):
     expiracao = datetime.now(timezone.utc) + timedelta(minutes=30)
@@ -54,7 +49,7 @@ def validar_token_jwt(token: str = Depends(oauth2_scheme)):
 
         username = payload.get("sub")
 
-        if username != USUARIO_ADMIN["username"]:
+        if not username:
             raise erro
 
         return username
