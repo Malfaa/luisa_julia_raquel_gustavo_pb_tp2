@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-
 import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import Depends, HTTPException
@@ -8,7 +7,7 @@ import os
 
 SECRET_KEY = os.getenv(
     "CHAVE_SECRETA",
-    "chave_secreta_super_segura",
+    "chave_secreta_dev_com_mais_de_32_caracteres",
 )
 ALGORITHM = "HS256"
 
